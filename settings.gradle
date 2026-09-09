@@ -1,0 +1,4 @@
+#Project-wide Gradle settings.
+rootProject.name = "StandoffCheat"
+
+include ':app'
