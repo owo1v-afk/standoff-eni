@@ -1,0 +1,72 @@
+name: build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Download tooling
+        run: |
+          mkdir -p tools && cd tools
+          curl -sL -o apktool.jar "https://github.com/iBotPeaches/Apktool/releases/download/v2.9.3/apktool_2.9.3.jar"
+          curl -sL -o baksmali.jar "https://bitbucket.org/JesusFreke/smali/downloads/baksmali-2.5.2.jar"
+          curl -sL -o smali.jar "https://bitbucket.org/JesusFreke/smali/downloads/smali-2.5.2.jar"
+          curl -sL -o apksigner.jar "https://github.com/patrickfav/uber-apk-signer/releases/download/v1.3.0/uber-apk-signer-1.3.0.jar"
+          ls -la
+
+      - name: Download game APK parts
+        run: |
+          mkdir -p apk
+          curl -sL -o apk/base.part00 "https://github.com/owo1v-afk/standoff-eni/releases/download/base-v1/base.part00"
+          curl -sL -o apk/base.part01 "https://github.com/owo1v-afk/standoff-eni/releases/download/base-v1/base.part01"
+          curl -sL -o apk/base.part02 "https://github.com/owo1v-afk/standoff-eni/releases/download/base-v1/base.part02"
+          cat apk/base.part0* > apk/base.apk
+          ls -la apk/base.apk
+          sha256sum apk/base.apk
+
+      - name: Decompile
+        run: |
+          cd apk
+          java -jar ../tools/apktool.jar d -s -f base.apk -o base_mod
+
+      - name: Patch smali
+        run: |
+          cd apk/base_mod
+          java -jar ../../tools/baksmali.jar d classes5.dex -o classes5_src
+          mkdir -p classes5_src/com/eni/hook
+          cp ../../scripts/EniHook.smali classes5_src/com/eni/hook/
+          cp ../../scripts/EniOverlayView.smali classes5_src/com/eni/hook/
+          cp ../../scripts/EniService.smali classes5_src/com/eni/hook/
+          python3 ../../scripts/patch_activity.py classes5_src/com/google/firebase/MessagingUnityPlayerActivity.smali
+          java -jar ../../tools/smali.jar ass -a 36 classes5_src -o classes5.dex
+          python3 ../../scripts/patch_manifest.py AndroidManifest.xml
+          grep -c "EniHook" classes5_src/com/google/firebase/MessagingUnityPlayerActivity.smali
+
+      - name: Rebuild APK
+        run: |
+          cd apk
+          java -jar ../tools/apktool.jar b base_mod -o eni_unsigned.apk --use-aapt2
+          ls -la eni_unsigned.apk
+
+      - name: Sign APK
+        run: |
+          cd apk
+          java -jar ../tools/apksigner.jar --apks eni_unsigned.apk --ks eni.jks --ksAlias eni --ksPass enipass --ksKeyPass enipass --out eni_signed.apk
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: standoff-eni
+          path: apk/eni_signed.apk
