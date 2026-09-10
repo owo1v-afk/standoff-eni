@@ -30,9 +30,10 @@ jobs:
         run: |
           mkdir -p apk
           curl -sL -o apk/base.part00 "https://github.com/owo1v-afk/standoff-eni/releases/download/base-v1/base.part00"
-          curl -sL -o apk/base.part01 "https://github.com/owo1v-afk/standoff-eni/releases/download/base-v1/base.part01"
-          curl -sL -o apk/base.part02 "https://github.com/owo1v-afk/standoff-eni/releases/download/base-v1/base.part02"
-          cat apk/base.part0* > apk/base.apk
+          for p in rest.part00 rest.part01 rest.part02 rest.part03 rest.part04 rest.part05 rest.part06 rest.part07 rest.part08 rest.part09 rest.part10 rest.part11; do
+            curl -sL -o "apk/$p" "https://github.com/owo1v-afk/standoff-eni/releases/download/base-v1/$p"
+          done
+          cat apk/base.part00 apk/rest.part0* apk/rest.part1* > apk/base.apk
           ls -la apk/base.apk
           sha256sum apk/base.apk
 
