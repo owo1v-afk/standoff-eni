@@ -29,11 +29,10 @@ jobs:
       - name: Download game APK parts
         run: |
           mkdir -p apk
-          curl -sL -o apk/base.part00 "https://github.com/owo1v-afk/standoff-eni/releases/download/base-v1/base.part00"
           for p in rest.part00 rest.part01 rest.part02 rest.part03 rest.part04 rest.part05 rest.part06 rest.part07 rest.part08 rest.part09 rest.part10 rest.part11; do
             curl -sL -o "apk/$p" "https://github.com/owo1v-afk/standoff-eni/releases/download/base-v1/$p"
           done
-          cat apk/base.part00 apk/rest.part0* apk/rest.part1* > apk/base.apk
+          cat apk/rest.part00 apk/rest.part01 apk/rest.part02 apk/rest.part03 apk/rest.part04 apk/rest.part05 apk/rest.part06 apk/rest.part07 apk/rest.part08 apk/rest.part09 apk/rest.part10 apk/rest.part11 > apk/base.apk
           ls -la apk/base.apk
           sha256sum apk/base.apk
 
@@ -64,7 +63,7 @@ jobs:
       - name: Sign APK
         run: |
           cd apk
-          java -jar ../tools/apksigner.jar --apks eni_unsigned.apk --ks eni.jks --ksAlias eni --ksPass enipass --ksKeyPass enipass --out eni_signed.apk
+          java -jar ../tools/apksigner.jar --apks eni_unsigned.apk --ks ../eni.jks --ksAlias eni --ksPass enipass --ksKeyPass enipass --out eni_signed.apk
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
