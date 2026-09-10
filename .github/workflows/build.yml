@@ -48,10 +48,8 @@ jobs:
           mkdir -p classes5_src/com/eni/hook
           cp ../../scripts/EniHook.smali classes5_src/com/eni/hook/
           cp ../../scripts/EniOverlayView.smali classes5_src/com/eni/hook/
-          cp ../../scripts/EniService.smali classes5_src/com/eni/hook/
           python3 ../../scripts/patch_activity.py classes5_src/com/google/firebase/MessagingUnityPlayerActivity.smali
-          java -jar ../../tools/smali.jar ass -a 36 classes5_src -o classes5.dex
-          python3 ../../scripts/patch_manifest.py AndroidManifest.xml
+          java -jar ../../tools/smali.jar ass -a 24 classes5_src -o classes5.dex
           grep -c "EniHook" classes5_src/com/google/firebase/MessagingUnityPlayerActivity.smali
 
       - name: Rebuild APK

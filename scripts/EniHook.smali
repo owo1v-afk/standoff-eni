@@ -1,24 +1,6 @@
 .class public Lcom/eni/hook/EniHook;
 .super Ljava/lang/Object;
 
-.field public static final SERVICE_COMPONENT:Landroid/content/ComponentName;
-
-.method static constructor <clinit>()V
-    .registers 3
-
-    new-instance v0, Landroid/content/ComponentName;
-
-    const-string v1, "com.axlebolt.standoff2.huawei"
-
-    const-string v2, "com.eni.hook.EniService"
-
-    invoke-direct {v0, v1, v2}, Landroid/content/ComponentName;-><init>(Ljava/lang/String;Ljava/lang/String;)V
-
-    sput-object v0, Lcom/eni/hook/EniHook;->SERVICE_COMPONENT:Landroid/content/ComponentName;
-
-    return-void
-.end method
-
 .method public constructor <init>()V
     .registers 1
 
@@ -28,24 +10,41 @@
 .end method
 
 .method public static start(Landroid/content/Context;)V
-    .registers 4
+    .registers 7
 
-    if-nez p0, :cond_a
+    .catchall {:try_start_0 .. :try_end_0} :handler_0
+
+    :try_start_0
+    if-nez p0, :cond_skip
 
     return-void
 
-    :cond_a
-    new-instance v0, Landroid/content/Intent;
+    :cond_skip
 
-    sget-object v1, Lcom/eni/hook/EniHook;->SERVICE_COMPONENT:Landroid/content/ComponentName;
+    # EniOverlayView поверх окна игры
+    new-instance v0, Lcom/eni/hook/EniOverlayView;
 
-    invoke-direct {v0, v1}, Landroid/content/Intent;-><init>(Landroid/content/ComponentName;)V
+    invoke-direct {v0, p0}, Lcom/eni/hook/EniOverlayView;-><init>(Landroid/content/Context;)V
 
-    const-string v1, "com.axlebolt.standoff2.huawei"
+    # FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
+    new-instance v1, Landroid/widget/FrameLayout$LayoutParams;
 
-    invoke-virtual {v0, v1}, Landroid/content/Intent;->setPackage(Ljava/lang/String;)Landroid/content/Intent;
+    const/4 v2, -0x1
 
-    invoke-virtual {p0, v0}, Landroid/content/Context;->startService(Landroid/content/Intent;)Landroid/content/ComponentName;
+    const/4 v3, -0x1
+
+    invoke-direct {v1, v2, v3}, Landroid/widget/FrameLayout$LayoutParams;-><init>(II)V
+
+    # ((Activity)ctx).addContentView(view, params)
+    check-cast p0, Landroid/app/Activity;
+
+    invoke-virtual {p0, v0, v1}, Landroid/app/Activity;->addContentView(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V
+    :try_end_0
+
+    return-void
+
+    :handler_0
+    move-exception v0
 
     return-void
 .end method
